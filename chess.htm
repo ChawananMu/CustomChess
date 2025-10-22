@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Chess Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <div id="chessboard"></div>
+            <div class="side-panel">
+                <div class="cost-display">
+                    <div class="player-cost">
+                        <h3>Black Points</h3>
+                        <div id="black-points">Points: <span>0</span></div>
+                        <div id="black-remaining">Remaining: <span>64</span></div>
+                    </div>
+                    <div class="player-cost">
+                        <h3>White Points</h3>
+                        <div id="white-points">Points: <span>0</span></div>
+                        <div id="white-remaining">Remaining: <span>64</span></div>
+                    </div>
+                </div>
+                <div class="pieces-list">
+                    <h3>Available Pieces</h3>
+                    <div class="pieces">
+                        <div class="piece" draggable="true" data-piece="King" data-cost="0">King (0)</div>
+                        <div class="piece" draggable="true" data-piece="Queen" data-cost="15">Queen (15)</div>
+                        <div class="piece" draggable="true" data-piece="Rook" data-cost="8">Rook (8)</div>
+                        <div class="piece" draggable="true" data-piece="Bishop" data-cost="6">Bishop (6)</div>
+                        <div class="piece" draggable="true" data-piece="Knight" data-cost="6">Knight (6)</div>
+                        <div class="piece" draggable="true" data-piece="Pawn" data-cost="1">Pawn (1)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="reset-black">Reset Black</button>
+            <button id="reset-white">Reset White</button>
+            <button id="game-button">Start Game</button>
+        </div>
+    </div>
+    <script src="chess.js"></script>
+</body>
+</html>

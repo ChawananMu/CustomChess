@@ -1,0 +1,115 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.game-area {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+#chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: 560px;
+    height: 560px;
+    border: 2px solid #333;
+}
+
+.square {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.square.white { background-color: #c6d9f0; }
+.square.black { background-color: #4c5cc2; }
+.square.valid-drop { background-color: #aaffaa; }
+.square.invalid-drop { background-color: #ffaaaa; }
+
+.side-panel {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cost-display { margin-bottom: 20px; }
+.player-cost { margin-bottom: 15px; }
+.player-cost h3 { margin-bottom: 8px; }
+.pieces-list { margin-top: 20px; }
+.pieces-list h3 { margin-bottom: 10px; }
+
+.pieces {
+    display: grid;
+    gap: 10px;
+}
+
+.piece {
+    padding: 10px;
+    background: #eee;
+    border: 1px solid #ddd;
+    cursor: move;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.piece:hover { background: #ddd; }
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#game-button, #reset-black, #reset-white {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+}
+
+#game-button.start { background-color: #4CAF50; }
+#game-button.stop { background-color: #f44336; }
+#reset-black { background-color: #333; }
+#reset-white { background-color: #f44336; }
+
+#game-button:disabled, #reset-black:disabled, #reset-white:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.piece-on-board {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.piece-on-board.white {
+    color: white;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.piece-on-board.black { color: black; }
