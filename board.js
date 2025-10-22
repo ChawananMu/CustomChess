@@ -5,7 +5,9 @@ class ChessGame {
         this.points = { white: 0, black: 0 };
         this.kings = { white: 0, black: 0 };
         this.maxPoints = 64;
+
         this.isGameStarted = false;
+
         this.initialize();
     }
 
@@ -24,7 +26,7 @@ class ChessGame {
             for (let col = 0; col < 8; col++) {
                 const squareColor = (row + col) % 2 === 0 ? 'white' : 'black';
                 const square = document.createElement('div');
-                square.className = `square ${squareColor}`;
+                square.className = 'square ' + squareColor;
                 square.dataset.row = row;
                 square.dataset.col = col;
                 board.appendChild(square);
@@ -99,6 +101,7 @@ class ChessGame {
             alert('Only one King per side allowed.');
             return;
         }
+
         if (this.points[color] + piece.cost > this.maxPoints) {
             alert('Not enough remaining points.');
             return;
@@ -125,7 +128,7 @@ class ChessGame {
 
         if (this.isGameStarted) {
             const firstMove = Math.random() < 0.5 ? 'White' : 'Black';
-            alert(`${firstMove} moves first.`);
+            alert(firstMove + ' moves first.');
         }
 
         const gameBtn = document.getElementById('game-button');
@@ -148,7 +151,9 @@ class ChessGame {
                 if (piece?.name === 'King') this.kings[color]--;
                 this.board[row][col] = null;
 
-                const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                const square = document.querySelector(
+                    '[data-row="' + row + '"][data-col="' + col + '"]'
+                );
                 square.innerHTML = '';
             }
         }
@@ -163,8 +168,8 @@ class ChessGame {
         for (const color of ['white', 'black']) {
             const used = this.points[color];
             const remaining = this.maxPoints - used;
-            document.querySelector(`#${color}-points span`).textContent = used;
-            document.querySelector(`#${color}-remaining span`).textContent = remaining;
+            document.querySelector('#' + color + '-points span').textContent = used;
+            document.querySelector('#' + color + '-remaining span').textContent = remaining;
         }
     }
 
@@ -198,7 +203,9 @@ class ChessGame {
                 const piece = this.board[row][col];
                 if (piece) {
                     const color = row <= 1 ? 'black' : 'white';
-                    const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    const square = document.querySelector(
+                        '[data-row="' + row + '"][data-col="' + col + '"]'
+                    );
                     square.innerHTML = `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png"></div>`;
                 }
             }
