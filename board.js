@@ -96,6 +96,8 @@ class ChessGame {
         }
 
         const piece = JSON.parse(event.dataTransfer.getData('piece'));
+        piece.color = color;
+
 
         if (piece.name === 'King' && this.kings[color] >= 1) {
             alert('Only one King per side allowed.');
@@ -224,4 +226,5 @@ class ChessGame {
     }
 }
 
-new ChessGame();
+const game = new ChessGame();
+window.game = game;

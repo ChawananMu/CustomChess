@@ -86,6 +86,7 @@ body {
     cursor: pointer;
     font-size: 16px;
     color: white;
+    background-color: green;
 }
 
 #game-button.start { background-color: #4CAF50; }
@@ -113,3 +114,15 @@ body {
 }
 
 .piece-on-board.black { color: black; }
+
+.green-highlight {
+    outline: 3px solid green;
+}
+
+.red-highlight {
+    outline: 3px solid red;
+}
+
+.selected-piece {
+    outline: 3px solid yellow;
+}
