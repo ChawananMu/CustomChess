@@ -129,8 +129,27 @@ class ChessGame {
         this.isGameStarted = !this.isGameStarted;
 
         if (this.isGameStarted) {
-            const firstMove = Math.random() < 0.5 ? 'White' : 'Black';
-            alert(firstMove + ' moves first.');
+            const firstMove = Math.random() < 0.5 ? 'white' : 'black';
+            alert(firstMove.charAt(0).toUpperCase() + firstMove.slice(1) + ' moves first.');
+            if (window.pieceLogic) {
+                window.pieceLogic.turn = firstMove;
+                window.pieceLogic.showTurn();
+            }
+        } else {
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    this.board[row][col] = null;
+                    const square = document.querySelector(
+                        '[data-row="' + row + '"][data-col="' + col + '"]'
+                    );
+                    square.innerHTML = '';
+                }
+            }
+            
+            this.points = { white: 0, black: 0 };
+            this.kings = { white: 0, black: 0 };
+            this.updatePointDisplays();
+            this.updateGameButtonState();
         }
 
         const gameBtn = document.getElementById('game-button');
@@ -204,11 +223,10 @@ class ChessGame {
             for (let col = 0; col < 8; col++) {
                 const piece = this.board[row][col];
                 if (piece) {
-                    const color = row <= 1 ? 'black' : 'white';
                     const square = document.querySelector(
                         '[data-row="' + row + '"][data-col="' + col + '"]'
                     );
-                    square.innerHTML = `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png"></div>`;
+                    square.innerHTML = `<div class="piece-on-board ${piece.color}"><img src="./image/${piece.color[0]}${piece.name}.png"></div>`;
                 }
             }
         }
