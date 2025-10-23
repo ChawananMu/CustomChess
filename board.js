@@ -204,7 +204,8 @@ class ChessGame {
             board: this.board,
             points: this.points,
             kings: this.kings,
-            started: this.isGameStarted
+            started: this.isGameStarted,
+            turn: window.pieceLogic ? window.pieceLogic.turn : ''
         };
         localStorage.setItem('chessGame', JSON.stringify(gameData));
     }
@@ -218,6 +219,17 @@ class ChessGame {
         this.points = game.points;
         this.kings = game.kings;
         this.isGameStarted = game.started;
+        
+        // Initialize pieceLogic with saved turn
+        if (this.isGameStarted && game.turn) {
+            if (window.pieceLogic) {
+                window.pieceLogic.turn = game.turn;
+                window.pieceLogic.showTurn();
+            } else {
+                // If pieceLogic not created yet, store turn to be used in constructor
+                this.savedTurn = game.turn;
+            }
+        }
 
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
