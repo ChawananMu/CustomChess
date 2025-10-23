@@ -218,6 +218,92 @@ class PieceLogic {
                     }
                 }
             }
+        } else if (piece.name === 'Queen') {
+            // สร้าง Array ของ "ทิศทาง" ที่ Rook เดินได้ (Delta Row, Delta Col)
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1], // บน (ซ้าย, กลาง, ขวา)
+                [0, -1], [0, 0], [0, 1], // กลาง (ซ้าย, ขวา)
+                [1, -1], [1, 0], [1, 1]   // ขวา (Right)
+            ];
+
+            // วนลูปเช็คทั้ง 4 ทิศทาง
+            for (const [dr, dc] of directions) {
+
+                // เริ่มต้นที่ช่องถัดไปจากตัว Rook
+                let targetRow = row + dr;
+                let targetCol = col + dc;
+
+                // "สไลด์" ไปเรื่อยๆ ตราบใดที่ยังอยู่ในกระดาน
+                while (this.isInsideBoard(targetRow, targetCol)) {
+
+                    const targetPiece = this.game.board[targetRow][targetCol];
+                    const targetSquare = this.getSquare(targetRow, targetCol);
+
+                    // 1. ถ้าช่องนั้น "ว่าง"
+                    if (!targetPiece) {
+                        targetSquare.classList.add('green-highlight');
+
+                        // เมื่อช่องว่าง ก็ให้สไลด์ต่อไปในทิศทางเดิม
+                        targetRow += dr;
+                        targetCol += dc;
+                    }
+                    // 2. ถ้าช่องนั้นมี "ศัตรู"
+                    else if (targetPiece.color !== color) {
+                        targetSquare.classList.add('red-highlight');
+
+                        // กินได้ แต่ไปต่อไม่ได้แล้ว ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
+                    // 3. ถ้าช่องนั้นมี "พวกเดียวกัน"
+                    else {
+                        // เดินทับไม่ได้ และไปต่อก็ไม่ได้ ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
+                }
+            }
+        } else if (piece.name === 'Bishop') {
+            // สร้าง Array ของ "ทิศทาง" ที่ Rook เดินได้ (Delta Row, Delta Col)
+            const directions = [
+                [-1, -1], [0, 0], [-1, 1], // บน (ซ้าย, กลาง, ขวา)
+                [0, 0], [0, 0], [0, 0], // กลาง (ซ้าย, ขวา)
+                [1, -1], [0, 0], [1, 1]   // ขวา (Right)
+            ];
+
+            // วนลูปเช็คทั้ง 4 ทิศทาง
+            for (const [dr, dc] of directions) {
+
+                // เริ่มต้นที่ช่องถัดไปจากตัว Rook
+                let targetRow = row + dr;
+                let targetCol = col + dc;
+
+                // "สไลด์" ไปเรื่อยๆ ตราบใดที่ยังอยู่ในกระดาน
+                while (this.isInsideBoard(targetRow, targetCol)) {
+
+                    const targetPiece = this.game.board[targetRow][targetCol];
+                    const targetSquare = this.getSquare(targetRow, targetCol);
+
+                    // 1. ถ้าช่องนั้น "ว่าง"
+                    if (!targetPiece) {
+                        targetSquare.classList.add('green-highlight');
+
+                        // เมื่อช่องว่าง ก็ให้สไลด์ต่อไปในทิศทางเดิม
+                        targetRow += dr;
+                        targetCol += dc;
+                    }
+                    // 2. ถ้าช่องนั้นมี "ศัตรู"
+                    else if (targetPiece.color !== color) {
+                        targetSquare.classList.add('red-highlight');
+
+                        // กินได้ แต่ไปต่อไม่ได้แล้ว ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
+                    // 3. ถ้าช่องนั้นมี "พวกเดียวกัน"
+                    else {
+                        // เดินทับไม่ได้ และไปต่อก็ไม่ได้ ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
+                }
+            }
         }
     }
 
