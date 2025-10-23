@@ -54,37 +54,67 @@ class PieceLogic {
 
         // Highlight the selected square
         this.getSquare(row, col).classList.add('selected-piece');
+        const color = piece.color; // ดึงสีมาใช้ร่วมกัน
 
         // --- Pawn Logic ---
         if (piece.name === 'Pawn') {
-            const color = piece.color;
-            const direction = color === 'white' ? -1 : 1;
-            const forwardRow = row + direction;
+            const direction = color === 'white' ? -1 : 1; // white เดินขึ้น (-1), black เดินลง (1)
+            const startRow = color === 'white' ? 6 : 1; // แถวเริ่มต้นของแต่ละสี
 
-            // Forward move (if empty)
-            if (this.isInsideBoard(forwardRow, col) && !this.game.board[forwardRow][col]) {
-                this.getSquare(forwardRow, col).classList.add('green-highlight');
+            // --- 1. Array สำหรับการเดิน (สีเขียว) ---
+            // (เช็คเฉพาะช่องว่างด้านหน้า)
+            const moveOffsets = [
+                [direction, 0] // 1 ช่องด้านหน้า
+            ];
+
+            for (const [dr, dc] of moveOffsets) {
+                const targetRow = row + dr;
+                const targetCol = col + dc;
+
+                if (!this.isInsideBoard(targetRow, targetCol)) continue;
+
+                // Pawn เดินได้เฉพาะเมื่อช่อง "ว่าง" เท่านั้น
+                if (!this.game.board[targetRow][targetCol]) {
+                    this.getSquare(targetRow, targetCol).classList.add('green-highlight');
+
+                    // (เพิ่ม) เช็คการเดิน 2 ช่อง: ถ้าอยู่แถวเริ่มต้น และ 1 ช่องหน้าว่าง
+                    if (row === startRow) {
+                        const twoSquareRow = row + (direction * 2);
+                        // ถ้าช่องที่ 2 ก็ว่างด้วย
+                        if (this.isInsideBoard(twoSquareRow, col) && !this.game.board[twoSquareRow][col]) {
+                            this.getSquare(twoSquareRow, col).classList.add('green-highlight');
+                        }
+                    }
+                }
             }
 
-            // Diagonal capture
-            for (let offset of [-1, 1]) {
-                const targetCol = col + offset;
-                if (!this.isInsideBoard(forwardRow, targetCol)) continue;
+            // --- 2. Array สำหรับการกิน (สีแดง) ---
+            // (เช็คเฉพาะช่องทแยงที่มีศัตรู)
+            const captureOffsets = [
+                [direction, -1], // ทแยงซ้าย
+                [direction, 1] // ทแยงขวา
+            ];
 
-                const targetPiece = this.game.board[forwardRow][targetCol];
+            for (const [dr, dc] of captureOffsets) {
+                const targetRow = row + dr;
+                const targetCol = col + dc;
+
+                if (!this.isInsideBoard(targetRow, targetCol)) continue;
+
+                const targetPiece = this.game.board[targetRow][targetCol];
+
+                // Pawn กินได้เฉพาะเมื่อช่อง "มีศัตรู" เท่านั้น
                 if (targetPiece && targetPiece.color !== color) {
-                    this.getSquare(forwardRow, targetCol).classList.add('red-highlight');
+                    this.getSquare(targetRow, targetCol).classList.add('red-highlight');
                 }
             }
 
             // --- King Logic (FIXED) ---
         } else if (piece.name === 'King') {
-            const color = piece.color;
-
             // สร้าง Array ของทิศทางที่เป็นไปได้ (row offset, col offset)
             const moveOffsets = [
                 [-1, -1], [-1, 0], [-1, 1], // บน (ซ้าย, กลาง, ขวา)
-                [0, -1],           [0, 1], // กลาง (ซ้าย, ขวา)
+                [0, -1], [0, 0], [0, 1], // กลาง (ซ้าย, ขวา)
                 [1, -1], [1, 0], [1, 1] // ล่าง (ซ้าย, กลาง, ขวา)
             ];
 
@@ -108,6 +138,84 @@ class PieceLogic {
                 // 3. เช็คว่าเป็นหมากของศัตรูหรือไม่
                 else if (targetPiece.color !== color) {
                     targetSquare.classList.add('red-highlight');
+                }
+            }
+
+        } else if (piece.name === 'Knight') {
+            // สร้าง Array ของทิศทางที่เป็นไปได้ (row offset, col offset)
+            const moveOffsets = [
+                [0, 0], [-2, -1], [0, 0], [-2, 1], [0, 0],
+                [-1, -2], [0, 0], [0, 0], [0, 0], [-1, 2],
+                [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+                [1, -2], [0, 0], [0, 0], [0, 0], [1, 2],
+                [0, 0], [2, -1], [0, 0], [2, 1], [0, 0],
+            ];
+
+            // วนลูปเช็คทั้ง 8 ทิศทาง
+            for (const [dr, dc] of moveOffsets) {
+                const targetRow = row + dr; // dr = delta row (การเปลี่ยนแปลงของแถว)
+                const targetCol = col + dc; // dc = delta col (การเปลี่ยนแปลงของคอลัมน์)
+
+                // 1. เช็คว่าอยู่ในกระดานหรือไม่
+                if (!this.isInsideBoard(targetRow, targetCol)) {
+                    continue; // ข้ามไปเช็คช่องถัดไป
+                }
+
+                const targetPiece = this.game.board[targetRow][targetCol];
+                const targetSquare = this.getSquare(targetRow, targetCol);
+
+                // 2. เช็คว่าเป็นช่องว่างหรือไม่
+                if (!targetPiece) {
+                    targetSquare.classList.add('green-highlight');
+                }
+                // 3. เช็คว่าเป็นหมากของศัตรูหรือไม่
+                else if (targetPiece.color !== color) {
+                    targetSquare.classList.add('red-highlight');
+                }
+            }
+
+        } else if (piece.name === 'Rook') {
+            // สร้าง Array ของ "ทิศทาง" ที่ Rook เดินได้ (Delta Row, Delta Col)
+            const directions = [
+                [-1, 0], // ขึ้น (Up)
+                [1, 0],  // ลง (Down)
+                [0, -1], // ซ้าย (Left)
+                [0, 1]   // ขวา (Right)
+            ];
+
+            // วนลูปเช็คทั้ง 4 ทิศทาง
+            for (const [dr, dc] of directions) {
+
+                // เริ่มต้นที่ช่องถัดไปจากตัว Rook
+                let targetRow = row + dr;
+                let targetCol = col + dc;
+
+                // "สไลด์" ไปเรื่อยๆ ตราบใดที่ยังอยู่ในกระดาน
+                while (this.isInsideBoard(targetRow, targetCol)) {
+
+                    const targetPiece = this.game.board[targetRow][targetCol];
+                    const targetSquare = this.getSquare(targetRow, targetCol);
+
+                    // 1. ถ้าช่องนั้น "ว่าง"
+                    if (!targetPiece) {
+                        targetSquare.classList.add('green-highlight');
+
+                        // เมื่อช่องว่าง ก็ให้สไลด์ต่อไปในทิศทางเดิม
+                        targetRow += dr;
+                        targetCol += dc;
+                    }
+                    // 2. ถ้าช่องนั้นมี "ศัตรู"
+                    else if (targetPiece.color !== color) {
+                        targetSquare.classList.add('red-highlight');
+
+                        // กินได้ แต่ไปต่อไม่ได้แล้ว ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
+                    // 3. ถ้าช่องนั้นมี "พวกเดียวกัน"
+                    else {
+                        // เดินทับไม่ได้ และไปต่อก็ไม่ได้ ให้หยุด loop ในทิศทางนี้
+                        break;
+                    }
                 }
             }
         }
