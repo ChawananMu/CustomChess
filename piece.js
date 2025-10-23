@@ -55,7 +55,7 @@ class PieceLogic {
         // Highlight the selected square
         this.getSquare(row, col).classList.add('selected-piece');
 
-        // Only Pawn logic for now
+        // --- Pawn Logic ---
         if (piece.name === 'Pawn') {
             const color = piece.color;
             const direction = color === 'white' ? -1 : 1;
@@ -74,6 +74,40 @@ class PieceLogic {
                 const targetPiece = this.game.board[forwardRow][targetCol];
                 if (targetPiece && targetPiece.color !== color) {
                     this.getSquare(forwardRow, targetCol).classList.add('red-highlight');
+                }
+            }
+
+            // --- King Logic (FIXED) ---
+        } else if (piece.name === 'King') {
+            const color = piece.color;
+
+            // สร้าง Array ของทิศทางที่เป็นไปได้ (row offset, col offset)
+            const moveOffsets = [
+                [-1, -1], [-1, 0], [-1, 1], // บน (ซ้าย, กลาง, ขวา)
+                [0, -1],           [0, 1], // กลาง (ซ้าย, ขวา)
+                [1, -1], [1, 0], [1, 1] // ล่าง (ซ้าย, กลาง, ขวา)
+            ];
+
+            // วนลูปเช็คทั้ง 8 ทิศทาง
+            for (const [dr, dc] of moveOffsets) {
+                const targetRow = row + dr; // dr = delta row (การเปลี่ยนแปลงของแถว)
+                const targetCol = col + dc; // dc = delta col (การเปลี่ยนแปลงของคอลัมน์)
+
+                // 1. เช็คว่าอยู่ในกระดานหรือไม่
+                if (!this.isInsideBoard(targetRow, targetCol)) {
+                    continue; // ข้ามไปเช็คช่องถัดไป
+                }
+
+                const targetPiece = this.game.board[targetRow][targetCol];
+                const targetSquare = this.getSquare(targetRow, targetCol);
+
+                // 2. เช็คว่าเป็นช่องว่างหรือไม่
+                if (!targetPiece) {
+                    targetSquare.classList.add('green-highlight');
+                }
+                // 3. เช็คว่าเป็นหมากของศัตรูหรือไม่
+                else if (targetPiece.color !== color) {
+                    targetSquare.classList.add('red-highlight');
                 }
             }
         }
@@ -108,13 +142,13 @@ class PieceLogic {
         // End turn
         this.clearSelection();
         this.turn = this.turn === 'white' ? 'black' : 'white';
-        if(this.game.kings[this.turn] === 0) {
+        if (this.game.kings[this.turn] === 0) {
             alert(this.turn + ' have lost the game!');
             this.game.toggleGame();
             return;
         }
         this.showTurn();
-        
+
         // Save game state after move
         this.game.saveGame();
     }
