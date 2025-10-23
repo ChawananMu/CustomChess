@@ -59,7 +59,7 @@ class PieceLogic {
         // --- Pawn Logic ---
         if (piece.name === 'Pawn') {
             const direction = color === 'white' ? -1 : 1; // white เดินขึ้น (-1), black เดินลง (1)
-            const startRow = color === 'white' ? 6 : 1; // แถวเริ่มต้นของแต่ละสี
+            const startRow = color === 'white' ? [6,7] : [0,1]; // แถวเริ่มต้นของแต่ละสี
 
             // --- 1. Array สำหรับการเดิน (สีเขียว) ---
             // (เช็คเฉพาะช่องว่างด้านหน้า)
@@ -78,7 +78,7 @@ class PieceLogic {
                     this.getSquare(targetRow, targetCol).classList.add('green-highlight');
 
                     // (เพิ่ม) เช็คการเดิน 2 ช่อง: ถ้าอยู่แถวเริ่มต้น และ 1 ช่องหน้าว่าง
-                    if (row === startRow) {
+                    if (startRow.includes(row)) {
                         const twoSquareRow = row + (direction * 2);
                         // ถ้าช่องที่ 2 ก็ว่างด้วย
                         if (this.isInsideBoard(twoSquareRow, col) && !this.game.board[twoSquareRow][col]) {
@@ -325,12 +325,29 @@ class PieceLogic {
         const color = piece.color;
 
         // Update logical board
-        this.game.board[row][col] = piece;
         this.game.board[fromRow][fromCol] = null;
+
+        // Create a new piece object to avoid reference issues
+        let newPiece = {
+            name: piece.name,
+            color: piece.color
+        };
+
+        // Check for pawn promotion
+        if (newPiece.name === 'Pawn' && ((newPiece.color === 'white' && row === 0) || (newPiece.color === 'black' && row === 7))) {
+            // Promote to Queen
+            newPiece.name = 'Queen';
+            // Save game immediately after promotion to ensure state is updated
+            setTimeout(() => {
+                this.game.saveGame();
+            }, 0);
+        }
+        
+        this.game.board[row][col] = newPiece;
 
         // Update visuals
         this.getSquare(row, col).innerHTML =
-            `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png"></div>`;
+            `<div class="piece-on-board ${newPiece.color}"><img src="./image/${newPiece.color[0]}${newPiece.name}.png"></div>`;
         this.getSquare(fromRow, fromCol).innerHTML = '';
 
         // End turn
