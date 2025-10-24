@@ -43,6 +43,9 @@ body {
 .square.invalid-drop { background-color: #ffaaaa; }
 
 .side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     flex: 1;
     background: white;
     padding: 20px;
@@ -50,7 +53,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.cost-display { margin-bottom: 20px; }
+.cost-display { margin-bottom: 20px; display: flex; gap: 20px; }
 .player-cost { margin-bottom: 15px; }
 .player-cost h3 { margin-bottom: 8px; }
 .pieces-list { margin-top: 20px; }
@@ -125,4 +128,12 @@ body {
 
 .selected-piece {
     box-shadow: inset 0 0 0 1000px rgb(246, 255, 0, 0.4);
+}
+
+#turn-indicator{
+    height: fit-content;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    background-color: black;
 }

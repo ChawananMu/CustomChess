@@ -397,7 +397,7 @@ class PieceLogic {
             turnDisplay.id = 'turn-indicator';
             turnDisplay.style.textAlign = 'center';
             turnDisplay.style.marginTop = '10px';
-            document.querySelector('.button-container').appendChild(turnDisplay);
+            document.querySelector('.side-panel').prepend(turnDisplay);
         }
         turnDisplay.textContent = `Current Turn: ${this.turn.toUpperCase()}`;
     }
