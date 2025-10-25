@@ -42,6 +42,11 @@ body {
 .square.valid-drop { background-color: #aaffaa; }
 .square.invalid-drop { background-color: #ffaaaa; }
 
+.square img{
+    height: 70px;
+    width: 70px;
+}
+
 .side-panel {
     display: flex;
     flex-direction: column;

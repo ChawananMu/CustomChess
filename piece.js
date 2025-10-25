@@ -73,7 +73,7 @@ class PieceLogic {
 
                 if (!this.isInsideBoard(targetRow, targetCol)) continue;
 
-                // Pawn เดินได้เฉพาะเมื่อช่อง "ว่าง" เท่านั้น
+                // Pawn เดินได้เฉพาะเมื่อช่อง "ว่าง" เทเท่านั้น
                 if (!this.game.board[targetRow][targetCol]) {
                     this.getSquare(targetRow, targetCol).classList.add('green-highlight');
 
@@ -324,6 +324,19 @@ class PieceLogic {
         const piece = this.selectedPiece;
         const color = piece.color;
 
+        // --- 🟢 START: ADDED WIN CONDITION LOGIC ---
+        // ตรวจสอบว่ามีหมากในช่องเป้าหมายหรือไม่ (กำลังจะกิน)
+        const capturedPiece = this.game.board[row][col];
+        if (capturedPiece) {
+            // ถ้าหมากที่ถูกกินคือ King
+            if (capturedPiece.name === 'King') {
+                // อัปเดตจำนวน King ของสีนั้นๆ
+                this.game.kings[capturedPiece.color]--;
+            }
+        }
+        // --- 🟢 END: ADDED WIN CONDITION LOGIC ---
+
+
         // Update logical board
         this.game.board[fromRow][fromCol] = null;
 
@@ -353,11 +366,20 @@ class PieceLogic {
         // End turn
         this.clearSelection();
         this.turn = this.turn === 'white' ? 'black' : 'white';
+        
+        // --- 🟢 REVISED: WIN CONDITION CHECK ---
+        // (โค้ดเดิม) ตรวจสอบว่าผู้เล่นใน "ตาถัดไป" มี King เหลือหรือไม่
         if (this.game.kings[this.turn] === 0) {
-            alert(this.turn + ' have lost the game!');
-            this.game.toggleGame();
+            // ถ้า 'white' (ตาของสีขาว) ไม่มี King แสดงว่า 'Black' (สีดำ) ชนะ
+            const winner = this.turn === 'white' ? 'Black' : 'White';
+            alert(`The ${this.turn} King has been captured! ${winner} wins!`);
+            
+            // หยุดเกมและรีเซ็ต
+            this.game.toggleGame(); 
             return;
         }
+        // --- 🟢 END: REVISED WIN CONDITION CHECK ---
+
         this.showTurn();
 
         // Save game state after move
