@@ -327,6 +327,13 @@ class PieceLogic {
         // --- 🟢 START: ADDED WIN CONDITION LOGIC ---
         // ตรวจสอบว่ามีหมากในช่องเป้าหมายหรือไม่ (กำลังจะกิน)
         const capturedPiece = this.game.board[row][col];
+        if (capturedPiece) {
+            // ถ้าหมากที่ถูกกินคือ King
+            if (capturedPiece.name === 'King') {
+                // อัปเดตจำนวน King ของสีนั้นๆ
+                this.game.kings[capturedPiece.color]--;
+            }
+        }
         // --- 🟢 END: ADDED WIN CONDITION LOGIC ---
 
 
@@ -360,24 +367,10 @@ class PieceLogic {
         this.clearSelection();
         this.turn = this.turn === 'white' ? 'black' : 'white';
         
-        // --- 🟢 REVISED: ANTICHESS WIN CONDITION CHECK ---
-        // ตรวจสอบว่าผู้เล่นใน "ตาถัดไป" มีหมากเหลือหรือไม่
-        let hasPieces = false;
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-                const piece = this.game.board[r][c];
-                if (piece && piece.color === this.turn) {
-                    hasPieces = true;
-                    break;
-                }
-            }
-            if (hasPieces) break;
-        }
-        
-        if (!hasPieces) {
-            // ถ้าไม่มีหมากเหลือ แสดงว่าอีกฝ่ายชนะ
+        // --- 🟢 REVISED: WIN CONDITION CHECK ---
+        if (this.game.kings[this.turn] === 0) {
             const winner = this.turn === 'white' ? 'Black' : 'White';
-            alert(`All ${this.turn} pieces have been captured! ${winner} wins!`);
+            alert(`${winner} has captured the ${this.turn} King and won the game!`);
             
             // Clear the move log
             this.clearMoveLog();
@@ -386,7 +379,7 @@ class PieceLogic {
             this.game.toggleGame(); 
             return;
         }
-        // --- 🟢 END: ANTICHESS WIN CONDITION CHECK ---
+        // --- 🟢 END: WIN CONDITION CHECK ---
 
         this.showTurn();
         
