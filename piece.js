@@ -379,6 +379,9 @@ class PieceLogic {
             const winner = this.turn === 'white' ? 'Black' : 'White';
             alert(`All ${this.turn} pieces have been captured! ${winner} wins!`);
             
+            // Clear the move log
+            this.clearMoveLog();
+            
             // หยุดเกมและรีเซ็ต
             this.game.toggleGame(); 
             return;
@@ -386,7 +389,10 @@ class PieceLogic {
         // --- 🟢 END: ANTICHESS WIN CONDITION CHECK ---
 
         this.showTurn();
-
+        
+        // Log the move
+        this.logMove(newPiece, fromRow, fromCol, row, col);
+        
         // Save game state after move
         this.game.saveGame();
     }
@@ -427,6 +433,34 @@ class PieceLogic {
             document.querySelector('.side-panel').prepend(turnDisplay);
         }
         turnDisplay.textContent = `Current Turn: ${this.turn.toUpperCase()}`;
+    }
+
+    logMove(piece, fromRow, fromCol, toRow, toCol) {
+        const moveLog = document.getElementById('move-log');
+        if (!moveLog) return;
+
+        // Convert coordinates to chess notation (a-h, 1-8)
+        const fromSquare = String.fromCharCode(97 + fromCol) + (8 - fromRow);
+        const toSquare = String.fromCharCode(97 + toCol) + (8 - toRow);
+        
+        // Create move entry
+        const moveEntry = document.createElement('div');
+        moveEntry.className = 'move-entry';
+        let pieceColor = piece.color.charAt(0).toUpperCase() + piece.color.slice(1);
+        moveEntry.textContent = `${pieceColor} ${piece.name}: ${fromSquare} → ${toSquare}`;
+        
+        // Add to log
+        moveLog.appendChild(moveEntry);
+        
+        // Scroll to bottom
+        moveLog.scrollTop = moveLog.scrollHeight;
+    }
+
+    clearMoveLog() {
+        const moveLog = document.getElementById('move-log');
+        if (moveLog) {
+            moveLog.innerHTML = '';
+        }
     }
 }
 
