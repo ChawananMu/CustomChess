@@ -114,7 +114,7 @@ class ChessGame {
         this.points[color] += piece.cost;
         if (piece.name === 'King') this.kings[color]++;
 
-        square.innerHTML = `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png"></div>`;
+        square.innerHTML = `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png" draggable="false"></div>`;
 
         this.updatePointDisplays();
         this.updateGameButtonState();
