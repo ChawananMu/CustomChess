@@ -20,7 +20,7 @@ class PieceLogic {
         }
     }
 
-    _getTurnIndicator() {
+    getTurnIndicator() {
         if (this.elements.turnIndicator) return this.elements.turnIndicator;
 
         let turnDisplay = document.getElementById('turn-indicator');
@@ -307,14 +307,14 @@ class PieceLogic {
         }
 
         if (inCheck && hasMoves) {
-            const turnDisplay = this._getTurnIndicator();
+            const turnDisplay = this.getTurnIndicator();
             turnDisplay.textContent += ' (CHECK!)';
             turnDisplay.style.color = 'red';
         }
     }
 
     showTurn() {
-        const turnDisplay = this._getTurnIndicator();
+        const turnDisplay = this.getTurnIndicator();
         turnDisplay.textContent = `Current Turn: ${this.turn.toUpperCase()}`;
         turnDisplay.style.color = '';
     }
