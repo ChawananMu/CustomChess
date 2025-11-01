@@ -7,13 +7,16 @@ class PieceLogic {
         this.turn = game.savedTurn || '';
         this.setupClickEvents();
         this.showTurn();
+
+        if (this.game.isGameStarted && this.turn) {
+            this.checkGameStatus();
+        }
     }
 
     setupClickEvents() {
         const boardElement = document.getElementById('chessboard');
 
         boardElement.addEventListener('click', (event) => {
-            // Only works when game started
             if (!this.game.isGameStarted) return;
 
             const square = event.target.closest('.square');
@@ -23,97 +26,182 @@ class PieceLogic {
             const col = Number(square.dataset.col);
             const clickedPiece = this.game.board[row][col];
 
-            // --- Case 1: selecting a piece ---
             if (!this.selectedPiece) {
-                if (!clickedPiece) return;
-
-                const color = this.getPieceColor(row, col);
-                if (color !== this.turn) return; // not your turn
-
+                if (!clickedPiece || clickedPiece.color !== this.turn) return;
                 this.selectPiece(row, col, clickedPiece);
                 return;
             }
 
-            // --- Case 2: cancel selection (clicked same square) ---
             if (this.selectedRow === row && this.selectedCol === col) {
                 this.clearSelection();
                 return;
             }
 
-            // --- Case 3: try to move ---
-            this.tryToMove(row, col);
+            if (square.classList.contains('green-highlight') || square.classList.contains('red-highlight')) {
+                this.tryToMove(row, col);
+            } else {
+                this.clearSelection();
+                if (clickedPiece && clickedPiece.color === this.turn) {
+                    this.selectPiece(row, col, clickedPiece);
+                }
+            }
         });
     }
 
-    // --- Shared movement patterns ---
     getDirections(pieceType) {
         const directions = {
-            'king_queen': [ // ทิศทางที่ King และ Queen ใช้ร่วมกัน
-                [-1, -1], [-1, 0], [-1, 1], // บน (ซ้าย, กลาง, ขวา)
-                [0, -1],          [0, 1],   // กลาง (ซ้าย, ขวา)
-                [1, -1],  [1, 0],  [1, 1]   // ล่าง (ซ้าย, กลาง, ขวา)
-            ],
-            'rook': [ // ทิศทางแนวตรง สำหรับ Rook
-                [-1, 0], // ขึ้น
-                [1, 0],  // ลง
-                [0, -1], // ซ้าย
-                [0, 1]   // ขวา
-            ],
-            'bishop': [ // ทิศทางแนวทแยง สำหรับ Bishop
-                [-1, -1], [-1, 1], // บนซ้าย, บนขวา
-                [1, -1],  [1, 1]   // ล่างซ้าย, ล่างขวา
-            ],
-            'knight': [ // ทิศทางกระโดดของ Knight
-                [-2, -1], [-2, 1], // บน 2 ซ้าย 1, บน 2 ขวา 1
-                [-1, -2], [-1, 2], // บน 1 ซ้าย 2, บน 1 ขวา 2
-                [1, -2],  [1, 2],  // ล่าง 1 ซ้าย 2, ล่าง 1 ขวา 2
-                [2, -1],  [2, 1]   // ล่าง 2 ซ้าย 1, ล่าง 2 ขวา 1
-            ]
+            'king_queen': [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]],
+            'rook': [[-1, 0], [1, 0], [0, -1], [0, 1]],
+            'bishop': [[-1, -1], [-1, 1], [1, -1], [1, 1]],
+            'knight': [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]
         };
         return directions[pieceType] || [];
     }
 
-    // ฟังก์ชั่นเช็คการเดินแบบต่อเนื่อง (สำหรับ Queen, Rook, Bishop)
-    checkSlidingMoves(row, col, color, directions) {
-        for (const [dr, dc] of directions) {
-            let targetRow = row + dr;
-            let targetCol = col + dc;
+    getPotentialMoves(row, col) {
+        const piece = this.game.board[row][col];
+        if (!piece) return [];
 
-            while (this.isInsideBoard(targetRow, targetCol)) {
-                const targetPiece = this.game.board[targetRow][targetCol];
-                const targetSquare = this.getSquare(targetRow, targetCol);
+        const moves = [];
+        const color = piece.color;
+        const opponentColor = color === 'white' ? 'black' : 'white';
 
-                if (!targetPiece) {
-                    targetSquare.classList.add('green-highlight');
-                    targetRow += dr;
-                    targetCol += dc;
-                } else {
-                    if (targetPiece.color !== color) {
-                        targetSquare.classList.add('red-highlight');
+        const addSingleMoves = (directions) => {
+            for (const [dr, dc] of directions) {
+                const targetRow = row + dr;
+                const targetCol = col + dc;
+                if (this.isInsideBoard(targetRow, targetCol)) {
+                    const targetPiece = this.game.board[targetRow][targetCol];
+                    if (!targetPiece || targetPiece.color === opponentColor) {
+                        moves.push([targetRow, targetCol]);
                     }
-                    break;
+                }
+            }
+        };
+
+        const addSlidingMoves = (directions) => {
+            for (const [dr, dc] of directions) {
+                let targetRow = row + dr;
+                let targetCol = col + dc;
+                while (this.isInsideBoard(targetRow, targetCol)) {
+                    const targetPiece = this.game.board[targetRow][targetCol];
+                    if (!targetPiece) {
+                        moves.push([targetRow, targetCol]); 
+                        targetRow += dr;
+                        targetCol += dc;
+                    } else if (targetPiece.color === opponentColor) {
+                        moves.push([targetRow, targetCol]); 
+                        break;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        };
+
+        if (piece.name === 'Pawn') {
+            const direction = color === 'white' ? -1 : 1;
+            const startRow = (color === 'white') ? [6, 7] : [0, 1];
+
+            let r = row + direction;
+            let c = col;
+            if (this.isInsideBoard(r, c) && !this.game.board[r][c]) {
+                moves.push([r, c]);
+                if (startRow.includes(row)) {
+                    r = row + (direction * 2);
+                    if (this.isInsideBoard(r, c) && !this.game.board[r][c]) {
+                        moves.push([r, c]);
+                    }
+                }
+            }
+
+            const captureOffsets = [[direction, -1], [direction, 1]];
+            for (const [dr, dc] of captureOffsets) {
+                r = row + dr;
+                c = col + dc;
+                if (this.isInsideBoard(r, c)) {
+                    const targetPiece = this.game.board[r][c];
+                    if (targetPiece && targetPiece.color === opponentColor) {
+                        moves.push([r, c]);
+                    }
+                }
+            }
+        } else if (piece.name === 'King') {
+            addSingleMoves(this.getDirections('king_queen'));
+        } else if (piece.name === 'Knight') {
+            addSingleMoves(this.getDirections('knight'));
+        } else if (piece.name === 'Rook') {
+            addSlidingMoves(this.getDirections('rook'));
+        } else if (piece.name === 'Queen') {
+            addSlidingMoves(this.getDirections('king_queen'));
+        } else if (piece.name === 'Bishop') {
+            addSlidingMoves(this.getDirections('bishop'));
+        }
+
+        return moves;
+    }
+
+    findKing(color) {
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const piece = this.game.board[r][c];
+                if (piece && piece.name === 'King' && piece.color === color) {
+                    return { row: r, col: c };
                 }
             }
         }
+        return null; 
     }
 
-    // ฟังก์ชั่นเช็คการเดินแบบครั้งเดียว (สำหรับ King, Knight)
-    checkSingleMoves(row, col, color, directions) {
-        for (const [dr, dc] of directions) {
-            const targetRow = row + dr;
-            const targetCol = col + dc;
+    isKingInCheck(color) {
+        const kingPos = this.findKing(color);
+        if (!kingPos) return false; 
+        const opponentColor = color === 'white' ? 'black' : 'white';
 
-            if (!this.isInsideBoard(targetRow, targetCol)) continue;
-
-            const targetPiece = this.game.board[targetRow][targetCol];
-            const targetSquare = this.getSquare(targetRow, targetCol);
-
-            if (!targetPiece) {
-                targetSquare.classList.add('green-highlight');
-            } else if (targetPiece.color !== color) {
-                targetSquare.classList.add('red-highlight');
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const piece = this.game.board[r][c];
+                if (piece && piece.color === opponentColor) {
+                    const moves = this.getPotentialMoves(r, c);
+                    for (const [moveR, moveC] of moves) {
+                        if (moveR === kingPos.row && moveC === kingPos.col) {
+                            return true;
+                        }
+                    }
+                }
             }
         }
+        return false;
+    }
+
+    hasLegalMoves(color) {
+        for (let fromR = 0; fromR < 8; fromR++) {
+            for (let fromC = 0; fromC < 8; fromC++) {
+                const piece = this.game.board[fromR][fromC];
+                if (piece && piece.color === color) {
+
+                    const potentialMoves = this.getPotentialMoves(fromR, fromC);
+
+                    for (const [toR, toC] of potentialMoves) {
+
+                        const targetPiece = this.game.board[toR][toC];
+                        this.game.board[toR][toC] = piece;
+                        this.game.board[fromR][fromC] = null;
+
+                        const isLegal = !this.isKingInCheck(color);
+
+                        this.game.board[fromR][fromC] = piece;
+                        this.game.board[toR][toC] = targetPiece;
+
+                        if (isLegal) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     selectPiece(row, col, piece) {
@@ -123,168 +211,100 @@ class PieceLogic {
         this.selectedRow = row;
         this.selectedCol = col;
 
-        // Highlight the selected square
         this.getSquare(row, col).classList.add('selected-piece');
-        const color = piece.color; // ดึงสีมาใช้ร่วมกัน
 
-        // --- Pawn Logic ---
-        if (piece.name === 'Pawn') {
-            const direction = color === 'white' ? -1 : 1; // white เดินขึ้น (-1), black เดินลง (1)
-            const startRow = color === 'white' ? [6,7] : [0,1]; // แถวเริ่มต้นของแต่ละสี
+        const potentialMoves = this.getPotentialMoves(row, col);
 
-            // --- 1. Array สำหรับการเดิน (สีเขียว) ---
-            // (เช็คเฉพาะช่องว่างด้านหน้า)
-            const moveOffsets = [
-                [direction, 0] // 1 ช่องด้านหน้า
-            ];
+        for (const [targetRow, targetCol] of potentialMoves) {
 
-            for (const [dr, dc] of moveOffsets) {
-                const targetRow = row + dr;
-                const targetCol = col + dc;
+            const targetPiece = this.game.board[targetRow][targetCol];
+            this.game.board[targetRow][targetCol] = piece;
+            this.game.board[row][col] = null;
 
-                if (!this.isInsideBoard(targetRow, targetCol)) continue;
+            const isLegal = !this.isKingInCheck(piece.color);
 
-                // Pawn เดินได้เฉพาะเมื่อช่อง "ว่าง" เทเท่านั้น
-                if (!this.game.board[targetRow][targetCol]) {
-                    this.getSquare(targetRow, targetCol).classList.add('green-highlight');
+            this.game.board[row][col] = piece;
+            this.game.board[targetRow][targetCol] = targetPiece;
 
-                    // (เพิ่ม) เช็คการเดิน 2 ช่อง: ถ้าอยู่แถวเริ่มต้น และ 1 ช่องหน้าว่าง
-                    if (startRow.includes(row)) {
-                        const twoSquareRow = row + (direction * 2);
-                        // ถ้าช่องที่ 2 ก็ว่างด้วย
-                        if (this.isInsideBoard(twoSquareRow, col) && !this.game.board[twoSquareRow][col]) {
-                            this.getSquare(twoSquareRow, col).classList.add('green-highlight');
-                        }
-                    }
+            if (isLegal) {
+                const targetSquare = this.getSquare(targetRow, targetCol);
+                if (targetPiece) {
+                    targetSquare.classList.add('red-highlight');
+                } else {
+                    targetSquare.classList.add('green-highlight');
                 }
             }
-
-            // --- 2. Array สำหรับการกิน (สีแดง) ---
-            // (เช็คเฉพาะช่องทแยงที่มีศัตรู)
-            const captureOffsets = [
-                [direction, -1], // ทแยงซ้าย
-                [direction, 1] // ทแยงขวา
-            ];
-
-            for (const [dr, dc] of captureOffsets) {
-                const targetRow = row + dr;
-                const targetCol = col + dc;
-
-                if (!this.isInsideBoard(targetRow, targetCol)) continue;
-
-                const targetPiece = this.game.board[targetRow][targetCol];
-
-                // Pawn กินได้เฉพาะเมื่อช่อง "มีศัตรู" เท่านั้น
-                if (targetPiece && targetPiece.color !== color) {
-                    this.getSquare(targetRow, targetCol).classList.add('red-highlight');
-                }
-            }
-
-            // --- Other Pieces Logic ---
-        } else if (piece.name === 'King') {
-            // King moves one square in any direction
-            this.checkSingleMoves(row, col, color, this.getDirections('king_queen'));
-
-        } else if (piece.name === 'Knight') {
-            // Knight jumps in L-shape
-            this.checkSingleMoves(row, col, color, this.getDirections('knight'));
-
-        } else if (piece.name === 'Rook') {
-            // Rook slides horizontally and vertically
-            this.checkSlidingMoves(row, col, color, this.getDirections('rook'));
-
-        } else if (piece.name === 'Queen') {
-            // Queen slides in all directions
-            this.checkSlidingMoves(row, col, color, this.getDirections('king_queen'));
-
-        } else if (piece.name === 'Bishop') {
-            // Bishop slides diagonally
-            this.checkSlidingMoves(row, col, color, this.getDirections('bishop'));
         }
     }
 
+
     tryToMove(row, col) {
-        const clickedSquare = this.getSquare(row, col);
-        const isMove = clickedSquare.classList.contains('green-highlight');
-        const isCapture = clickedSquare.classList.contains('red-highlight');
 
-        // If clicked an invalid tile
-        if (!isMove && !isCapture) {
-            this.clearSelection();
-            return;
-        }
-
-        // Move the piece
         const fromRow = this.selectedRow;
         const fromCol = this.selectedCol;
         const piece = this.selectedPiece;
-        const color = piece.color;
 
-        // --- 🟢 START: ADDED WIN CONDITION LOGIC ---
-        // ตรวจสอบว่ามีหมากในช่องเป้าหมายหรือไม่ (กำลังจะกิน)
-        const capturedPiece = this.game.board[row][col];
-        if (capturedPiece) {
-            // ถ้าหมากที่ถูกกินคือ King
-            if (capturedPiece.name === 'King') {
-                // อัปเดตจำนวน King ของสีนั้นๆ
-                this.game.kings[capturedPiece.color]--;
-            }
-        }
-        // --- 🟢 END: ADDED WIN CONDITION LOGIC ---
-
-
-        // Update logical board
         this.game.board[fromRow][fromCol] = null;
 
-        // Create a new piece object to avoid reference issues
         let newPiece = {
             name: piece.name,
-            color: piece.color
+            color: piece.color,
+            cost: piece.cost
         };
 
-        // Check for pawn promotion
         if (newPiece.name === 'Pawn' && ((newPiece.color === 'white' && row === 0) || (newPiece.color === 'black' && row === 7))) {
-            // Promote to Queen
             newPiece.name = 'Queen';
-            // Save game immediately after promotion to ensure state is updated
-            setTimeout(() => {
-                this.game.saveGame();
-            }, 0);
         }
-        
+
         this.game.board[row][col] = newPiece;
 
-        // Update visuals
         this.getSquare(row, col).innerHTML =
             `<div class="piece-on-board ${newPiece.color}"><img src="./image/${newPiece.color[0]}${newPiece.name}.png"></div>`;
         this.getSquare(fromRow, fromCol).innerHTML = '';
 
-        // End turn
+        this.logMove(newPiece, fromRow, fromCol, row, col);
+
         this.clearSelection();
         this.turn = this.turn === 'white' ? 'black' : 'white';
-        
-        // --- 🟢 REVISED: WIN CONDITION CHECK ---
-        if (this.game.kings[this.turn] === 0) {
+        this.showTurn();
+
+        this.game.saveGame();
+
+        this.checkGameStatus();
+    }
+
+    checkGameStatus() {
+        const inCheck = this.isKingInCheck(this.turn);
+        const hasMoves = this.hasLegalMoves(this.turn);
+
+        if (inCheck && !hasMoves) {
             const winner = this.turn === 'white' ? 'Black' : 'White';
-            alert(`${winner} has captured the ${this.turn} King and won the game!`);
-            
-            // Clear the move log
-            this.clearMoveLog();
-            
-            // หยุดเกมและรีเซ็ต
-            this.game.toggleGame(); 
+            setTimeout(() => {
+                alert(`CHECKMATE! ${winner} wins!`);
+                this.clearMoveLog();
+                this.game.toggleGame();
+            }, 100);
             return;
         }
-        // --- 🟢 END: WIN CONDITION CHECK ---
 
-        this.showTurn();
-        
-        // Log the move
-        this.logMove(newPiece, fromRow, fromCol, row, col);
-        
-        // Save game state after move
-        this.game.saveGame();
+        if (!inCheck && !hasMoves) {
+            setTimeout(() => {
+                alert("STALEMATE! The game is a draw.");
+                this.clearMoveLog();
+                this.game.toggleGame();
+            }, 100);
+            return;
+        }
+
+        if (inCheck && hasMoves) {
+            const turnDisplay = document.getElementById('turn-indicator');
+            if (turnDisplay) {
+                turnDisplay.textContent += ' (CHECK!)';
+                turnDisplay.style.color = 'red';
+            }
+        }
     }
+
 
     clearSelection() {
         this.selectedPiece = null;
@@ -293,7 +313,6 @@ class PieceLogic {
         this.clearHighlights();
     }
 
-    // --- Utility functions ---
     getPieceColor(row, col) {
         const piece = this.game.board[row][col];
         return piece ? piece.color : null;
@@ -318,30 +337,27 @@ class PieceLogic {
             turnDisplay = document.createElement('div');
             turnDisplay.id = 'turn-indicator';
             turnDisplay.style.textAlign = 'center';
+            turnDisplay.style.fontWeight = 'bold';
             turnDisplay.style.marginTop = '10px';
             document.querySelector('.side-panel').prepend(turnDisplay);
         }
         turnDisplay.textContent = `Current Turn: ${this.turn.toUpperCase()}`;
+        turnDisplay.style.color = '';
     }
 
     logMove(piece, fromRow, fromCol, toRow, toCol) {
         const moveLog = document.getElementById('move-log');
         if (!moveLog) return;
 
-        // Convert coordinates to chess notation (a-h, 1-8)
         const fromSquare = String.fromCharCode(97 + fromCol) + (8 - fromRow);
         const toSquare = String.fromCharCode(97 + toCol) + (8 - toRow);
-        
-        // Create move entry
+
         const moveEntry = document.createElement('div');
         moveEntry.className = 'move-entry';
         let pieceColor = piece.color.charAt(0).toUpperCase() + piece.color.slice(1);
         moveEntry.textContent = `${pieceColor} ${piece.name}: ${fromSquare} → ${toSquare}`;
-        
-        // Add to log
+
         moveLog.appendChild(moveEntry);
-        
-        // Scroll to bottom
         moveLog.scrollTop = moveLog.scrollHeight;
     }
 
@@ -353,7 +369,6 @@ class PieceLogic {
     }
 }
 
-// Wait until the board game is ready
 if (window.game) {
     window.pieceLogic = new PieceLogic(window.game);
 } else {

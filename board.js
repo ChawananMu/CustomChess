@@ -127,26 +127,52 @@ class ChessGame {
             return;
         }
 
-        this.isGameStarted = !this.isGameStarted;
+        if (!this.isGameStarted) {
 
-        if (this.isGameStarted) {
-            const firstMove = Math.random() < 0.5 ? 'white' : 'black';
-            alert(firstMove.charAt(0).toUpperCase() + firstMove.slice(1) + ' moves first.');
-            if (window.pieceLogic) {
-                window.pieceLogic.turn = firstMove;
-                window.pieceLogic.showTurn();
+            const pl = window.pieceLogic;
+            if (!pl) {
+                alert("Error: Piece logic not found.");
+                return;
             }
+
+            let firstMove = pl.turn || (Math.random() < 0.5 ? 'white' : 'black');
+
+            const originalTurn = pl.turn;
+            pl.turn = firstMove;
+
+            const inCheck = pl.isKingInCheck(firstMove);
+            const hasMoves = pl.hasLegalMoves(firstMove);
+
+            pl.turn = originalTurn;
+
+            if (inCheck && !hasMoves) {
+                alert(`Invalid setup: ${firstMove.toUpperCase()} starts in CHECKMATE. Please change the board.`);
+                return; 
+            }
+            if (!inCheck && !hasMoves) {
+                alert(`Invalid setup: ${firstMove.toUpperCase()} starts in STALEMATE. Please change the board.`);
+                return; 
+            }
+
+            this.isGameStarted = true;
+
+            pl.turn = firstMove; 
+            alert(firstMove.charAt(0).toUpperCase() + firstMove.slice(1) + ' moves first.');
+            pl.showTurn();
+
         } else {
+            this.isGameStarted = false;
+
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     this.board[row][col] = null;
                     const square = document.querySelector(
                         '[data-row="' + row + '"][data-col="' + col + '"]'
                     );
-                    square.innerHTML = '';
+                    if (square) square.innerHTML = '';
                 }
             }
-            
+
             this.points = { white: 0, black: 0 };
             this.kings = { white: 0, black: 0 };
             this.updatePointDisplays();
@@ -154,6 +180,8 @@ class ChessGame {
 
             if (window.pieceLogic) {
                 window.pieceLogic.clearMoveLog();
+                window.pieceLogic.turn = ''; 
+                window.pieceLogic.showTurn();
             }
         }
 
@@ -224,7 +252,7 @@ class ChessGame {
         this.points = game.points;
         this.kings = game.kings;
         this.isGameStarted = game.started;
-        
+
         // Initialize pieceLogic with saved turn
         if (this.isGameStarted && game.turn) {
             if (window.pieceLogic) {
