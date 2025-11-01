@@ -78,7 +78,7 @@ class ChessGame {
         event.preventDefault();
         if (this.isGameStarted) return;
 
-        const square = event.target;
+        const square = event.currentTarget;
         const row = Number(square.dataset.row);
         const col = Number(square.dataset.col);
 
