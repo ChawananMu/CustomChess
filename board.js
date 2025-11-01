@@ -192,6 +192,7 @@ class ChessGame {
             window.pieceLogic.clearMoveLog();
             window.pieceLogic.turn = ''; 
             window.pieceLogic.showTurn();
+            window.pieceLogic.clearSelection();
         }
         
         this.updateUI(); 
