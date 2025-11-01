@@ -41,9 +41,10 @@ class ChessGame {
         pieces.forEach(piece => {
             piece.addEventListener('dragstart', e => {
                 if (this.isGameStarted) return;
+                const pieceElement = e.target.closest('.piece') || e.target;
                 const data = {
-                    name: e.target.dataset.piece,
-                    cost: Number(e.target.dataset.cost)
+                    name: pieceElement.dataset.piece,
+                    cost: Number(pieceElement.dataset.cost)
                 };
                 e.dataTransfer.setData('piece', JSON.stringify(data));
             });
@@ -78,7 +79,7 @@ class ChessGame {
         event.preventDefault();
         if (this.isGameStarted) return;
 
-        const square = event.currentTarget;
+        const square = event.target;
         const row = Number(square.dataset.row);
         const col = Number(square.dataset.col);
 
