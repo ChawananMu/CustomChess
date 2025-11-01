@@ -154,6 +154,7 @@ class ChessGame {
 
             if (window.pieceLogic) {
                 window.pieceLogic.clearMoveLog();
+                window.pieceLogic.clearSelection();
             }
         }
 
