@@ -1,12 +1,21 @@
 class ChessGame {
     constructor() {
         this.board = Array(8).fill().map(() => Array(8).fill(null));
-
         this.points = { white: 0, black: 0 };
         this.kings = { white: 0, black: 0 };
         this.maxPoints = 64;
-
         this.isGameStarted = false;
+
+        this.elements = {
+            board: document.getElementById('chessboard'),
+            gameButton: document.getElementById('game-button'),
+            resetBlack: document.getElementById('reset-black'),
+            resetWhite: document.getElementById('reset-white'),
+            whitePoints: document.querySelector('#white-points span'),
+            whiteRemaining: document.querySelector('#white-remaining span'),
+            blackPoints: document.querySelector('#black-points span'),
+            blackRemaining: document.querySelector('#black-remaining span')
+        };
 
         this.initialize();
     }
@@ -18,10 +27,46 @@ class ChessGame {
         this.loadSavedGame();
     }
 
-    createBoardSquares() {
-        const board = document.getElementById('chessboard');
-        board.innerHTML = '';
+    getSquare(row, col) {
+        return this.elements.board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    }
 
+    drawPiece(row, col) {
+        const piece = this.board[row][col];
+        const square = this.getSquare(row, col);
+        if (!square) return;
+
+        if (piece) {
+            square.innerHTML = `<div class="piece-on-board ${piece.color}"><img src="./image/${piece.color[0]}${piece.name}.png" draggable="false"></div>`;
+        } else {
+            square.innerHTML = '';
+        }
+    }
+
+    updateUI(shouldSave = true) {
+        for (const color of ['white', 'black']) {
+            const used = this.points[color];
+            const remaining = this.maxPoints - used;
+            const keyPrefix = color === 'white' ? 'white' : 'black';
+            this.elements[`${keyPrefix}Points`].textContent = used;
+            this.elements[`${keyPrefix}Remaining`].textContent = remaining;
+        }
+
+        this.elements.gameButton.disabled = !(this.kings.white === 1 && this.kings.black === 1);
+
+        const isSetupPhase = !this.isGameStarted;
+        this.elements.gameButton.textContent = this.isGameStarted ? 'Stop Game' : 'Start Game';
+        this.elements.gameButton.className = this.isGameStarted ? 'stop' : 'start';
+        this.elements.resetBlack.disabled = !isSetupPhase;
+        this.elements.resetWhite.disabled = !isSetupPhase;
+
+        if (shouldSave) {
+            this.saveGame();
+        }
+    }
+
+    createBoardSquares() {
+        this.elements.board.innerHTML = '';
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 const squareColor = (row + col) % 2 === 0 ? 'white' : 'black';
@@ -29,14 +74,14 @@ class ChessGame {
                 square.className = 'square ' + squareColor;
                 square.dataset.row = row;
                 square.dataset.col = col;
-                board.appendChild(square);
+                this.elements.board.appendChild(square);
             }
         }
     }
 
     enableDragAndDrop() {
         const pieces = document.querySelectorAll('.piece');
-        const squares = document.querySelectorAll('.square');
+        const squares = this.elements.board.querySelectorAll('.square');
 
         pieces.forEach(piece => {
             piece.addEventListener('dragstart', e => {
@@ -54,25 +99,22 @@ class ChessGame {
             square.addEventListener('dragover', e => {
                 if (this.isGameStarted) return;
                 e.preventDefault();
-
                 const row = Number(square.dataset.row);
                 const isPlacementRow = row <= 1 || row >= 6;
                 square.classList.toggle('valid-drop', isPlacementRow);
                 square.classList.toggle('invalid-drop', !isPlacementRow);
             });
-
             square.addEventListener('dragleave', () => {
                 square.classList.remove('valid-drop', 'invalid-drop');
             });
-
             square.addEventListener('drop', e => this.handlePieceDrop(e));
         });
     }
 
     connectButtons() {
-        document.getElementById('game-button').addEventListener('click', () => this.toggleGame());
-        document.getElementById('reset-black').addEventListener('click', () => this.resetSide('black'));
-        document.getElementById('reset-white').addEventListener('click', () => this.resetSide('white'));
+        this.elements.gameButton.addEventListener('click', () => this.toggleGame());
+        this.elements.resetBlack.addEventListener('click', () => this.resetSide('black'));
+        this.elements.resetWhite.addEventListener('click', () => this.resetSide('white'));
     }
 
     handlePieceDrop(event) {
@@ -85,7 +127,7 @@ class ChessGame {
 
         square.classList.remove('valid-drop', 'invalid-drop');
 
-        const color = row <= 1 ? 'black' : row >= 6 ? 'white' : null;
+        const color = row <= 1 ? 'black' : (row >= 6 ? 'white' : null);
         if (!color) {
             alert('You can only place pieces on the first two or last two rows.');
             return;
@@ -98,7 +140,6 @@ class ChessGame {
 
         const piece = JSON.parse(event.dataTransfer.getData('piece'));
         piece.color = color;
-
 
         if (piece.name === 'King' && this.kings[color] >= 1) {
             alert('Only one King per side allowed.');
@@ -114,20 +155,54 @@ class ChessGame {
         this.points[color] += piece.cost;
         if (piece.name === 'King') this.kings[color]++;
 
-        square.innerHTML = `<div class="piece-on-board ${color}"><img src="./image/${color[0]}${piece.name}.png" draggable="false"></div>`;
+        this.drawPiece(row, col);
+        this.updateUI();
+    }
 
-        this.updatePointDisplays();
-        this.updateGameButtonState();
-        this.saveGame();
+    resetSide(color) {
+        const startRow = color === 'black' ? 0 : 6;
+        const endRow = startRow + 1;
+
+        for (let row = startRow; row <= endRow; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.board[row][col];
+                if (piece?.name === 'King') this.kings[color]--;
+                this.board[row][col] = null;
+                this.drawPiece(row, col);
+            }
+        }
+
+        this.points[color] = 0;
+        this.updateUI();
+    }
+    
+    resetBoard() {
+        this.isGameStarted = false;
+        this.points = { white: 0, black: 0 };
+        this.kings = { white: 0, black: 0 };
+
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                this.board[r][c] = null;
+                this.drawPiece(r, c); 
+            }
+        }
+
+        if (window.pieceLogic) {
+            window.pieceLogic.clearMoveLog();
+            window.pieceLogic.turn = ''; 
+            window.pieceLogic.showTurn();
+        }
+        
+        this.updateUI(); 
     }
 
     toggleGame() {
-        if (!this.isGameStarted && (this.kings.white !== 1 || this.kings.black !== 1)) {
-            alert('Each side must have one King before starting.');
-            return;
-        }
-
         if (!this.isGameStarted) {
+            if (this.kings.white !== 1 || this.kings.black !== 1) {
+                alert('Each side must have one King before starting.');
+                return;
+            }
 
             const pl = window.pieceLogic;
             if (!pl) {
@@ -136,7 +211,6 @@ class ChessGame {
             }
 
             let firstMove = pl.turn || (Math.random() < 0.5 ? 'white' : 'black');
-
             const originalTurn = pl.turn;
             pl.turn = firstMove;
 
@@ -155,81 +229,15 @@ class ChessGame {
             }
 
             this.isGameStarted = true;
-
             pl.turn = firstMove; 
             alert(firstMove.charAt(0).toUpperCase() + firstMove.slice(1) + ' moves first.');
             pl.showTurn();
 
         } else {
-            this.isGameStarted = false;
-
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    this.board[row][col] = null;
-                    const square = document.querySelector(
-                        '[data-row="' + row + '"][data-col="' + col + '"]'
-                    );
-                    if (square) square.innerHTML = '';
-                }
-            }
-
-            this.points = { white: 0, black: 0 };
-            this.kings = { white: 0, black: 0 };
-            this.updatePointDisplays();
-            this.updateGameButtonState();
-
-            if (window.pieceLogic) {
-                window.pieceLogic.clearMoveLog();
-                window.pieceLogic.turn = ''; 
-                window.pieceLogic.showTurn();
-            }
+            this.resetBoard();
         }
 
-        const gameBtn = document.getElementById('game-button');
-        gameBtn.textContent = this.isGameStarted ? 'Stop Game' : 'Start Game';
-        gameBtn.className = this.isGameStarted ? 'stop' : 'start';
-
-        document.getElementById('reset-black').disabled = this.isGameStarted;
-        document.getElementById('reset-white').disabled = this.isGameStarted;
-
-        this.saveGame();
-    }
-
-    resetSide(color) {
-        const startRow = color === 'black' ? 0 : 6;
-        const endRow = startRow + 1;
-
-        for (let row = startRow; row <= endRow; row++) {
-            for (let col = 0; col < 8; col++) {
-                const piece = this.board[row][col];
-                if (piece?.name === 'King') this.kings[color]--;
-                this.board[row][col] = null;
-
-                const square = document.querySelector(
-                    '[data-row="' + row + '"][data-col="' + col + '"]'
-                );
-                square.innerHTML = '';
-            }
-        }
-
-        this.points[color] = 0;
-        this.updatePointDisplays();
-        this.updateGameButtonState();
-        this.saveGame();
-    }
-
-    updatePointDisplays() {
-        for (const color of ['white', 'black']) {
-            const used = this.points[color];
-            const remaining = this.maxPoints - used;
-            document.querySelector('#' + color + '-points span').textContent = used;
-            document.querySelector('#' + color + '-remaining span').textContent = remaining;
-        }
-    }
-
-    updateGameButtonState() {
-        const startBtn = document.getElementById('game-button');
-        startBtn.disabled = !(this.kings.white === 1 && this.kings.black === 1);
+        this.updateUI(); 
     }
 
     saveGame() {
@@ -253,39 +261,22 @@ class ChessGame {
         this.kings = game.kings;
         this.isGameStarted = game.started;
 
-        // Initialize pieceLogic with saved turn
         if (this.isGameStarted && game.turn) {
             if (window.pieceLogic) {
                 window.pieceLogic.turn = game.turn;
                 window.pieceLogic.showTurn();
             } else {
-                // If pieceLogic not created yet, store turn to be used in constructor
                 this.savedTurn = game.turn;
             }
         }
 
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
-                const piece = this.board[row][col];
-                if (piece) {
-                    const square = document.querySelector(
-                        '[data-row="' + row + '"][data-col="' + col + '"]'
-                    );
-                    square.innerHTML = `<div class="piece-on-board ${piece.color}"><img src="./image/${piece.color[0]}${piece.name}.png"></div>`;
-                }
+                this.drawPiece(row, col);
             }
         }
 
-        this.updatePointDisplays();
-        this.updateGameButtonState();
-
-        if (this.isGameStarted) {
-            const btn = document.getElementById('game-button');
-            btn.textContent = 'Stop Game';
-            btn.className = 'stop';
-            document.getElementById('reset-black').disabled = true;
-            document.getElementById('reset-white').disabled = true;
-        }
+        this.updateUI(false);
     }
 }
 
