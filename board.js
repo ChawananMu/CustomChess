@@ -151,6 +151,10 @@ class ChessGame {
             this.kings = { white: 0, black: 0 };
             this.updatePointDisplays();
             this.updateGameButtonState();
+
+            if (window.pieceLogic) {
+                window.pieceLogic.clearMoveLog();
+            }
         }
 
         const gameBtn = document.getElementById('game-button');
