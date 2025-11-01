@@ -21,13 +21,11 @@ body {
     margin-bottom: 20px;
 }
 
-/* --- LOG PANEL (ปรับปรุง) --- */
 .log-panel {
     width: 200px;
     background: white;
     padding: 20px;
     border-radius: 8px;
-    /* เปลี่ยนเงาให้นุ่มนวลและทันสมัยขึ้น */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     height: 565px;
     overflow-y: auto;
@@ -50,7 +48,6 @@ body {
     background: #f5f5f5;
 }
 
-/* --- CHESSBOARD --- */
 #chessboard {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -77,41 +74,31 @@ body {
     width: 70px;
 }
 
-/* ===============================================
-    CSS ที่ปรับปรุงใหม่สำหรับ SIDE PANEL
-===============================================
-*/
-
 .side-panel {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* เพิ่มช่องว่างระหว่างส่วนต่างๆ */
-    width: 340px; /* ปรับความกว้างให้สมดุลขึ้น */
+    gap: 20px;
+    width: 340px;
     background: #ffffff;
     padding: 20px;
     border-radius: 8px;
-    /* เปลี่ยนเงาให้นุ่มนวลและทันสมัยขึ้น */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    /* จัดให้ความสูงเท่ากับกระดาน */
     height: 565px; 
-    /* จัดการพื้นที่ภายในให้ยืดหยุ่น */
     justify-content: flex-start;
 }
 
-/* --- ปรับส่วนแสดงคะแนน (Cost) --- */
-
 .cost-display {
-    margin-bottom: 0; /* ลบ margin เดิมออก */
+    margin-bottom: 0;
     display: flex;
-    gap: 15px; /* ช่องว่างระหว่างกล่องคะแนน */
+    gap: 15px;
     justify-content: space-around;
 }
 
 .player-cost {
-    margin-bottom: 0; /* ปล่อยให้ gap ของ .side-panel จัดการ */
-    flex: 1; /* ให้ทั้งสองฝั่งขยายเท่ากัน */
+    margin-bottom: 0;
+    flex: 1;
     padding: 15px;
-    background: #f9f9f9; /* สีพื้นหลังอ่อนๆ */
+    background: #f9f9f9;
     border-radius: 6px;
     border: 1px solid #eee;
 }
@@ -120,41 +107,36 @@ body {
     margin-bottom: 12px;
     color: #333;
     font-size: 1.1em;
-    /* เพิ่มเส้นขีดล่างเพื่อแบ่งส่วน */
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 8px;
 }
 
-/* จัดการ <p> ที่มีคะแนน */
 .player-cost p {
     display: flex;
-    justify-content: space-between; /* "Used:" และตัวเลข */
+    justify-content: space-between;
     align-items: center;
     font-size: 0.95em;
     color: #555;
     margin-bottom: 5px;
 }
 
-/* ทำให้ตัวเลขคะแนนเด่นขึ้น */
 .player-cost p span {
     font-weight: bold;
     font-size: 1.25em;
     color: #111;
 }
 
-/* เน้นคะแนนคงเหลือ (Remaining) */
 [id$="-remaining"] span {
     color: #4CAF50; /* สีเขียว */
 }
 
-/* --- ปรับส่วนรายการตัวหมาก (Pieces) --- */
 
 .pieces-list {
-    margin-top: 0; /* ปล่อยให้ gap ของ .side-panel จัดการ */
-    flex-grow: 1; /* ให้ส่วนนี้ยืดขยายเต็มพื้นที่ที่เหลือ */
+    margin-top: 0;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* แก้ปัญหา overflow */
+    min-height: 0;
 }
 
 .pieces-list h3 {
@@ -162,31 +144,27 @@ body {
     color: #333;
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 8px;
-    /* ป้องกัน h3 หายไปเมื่อเลื่อน */
     flex-shrink: 0; 
 }
 
 .pieces {
     display: grid;
     gap: 10px;
-    /* ทำให้ grid ตอบสนองตามขนาด panel */
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* ปรับ minmax ให้กว้างขึ้นเล็กน้อยสำหรับรูปภาพ */
-    /* เพิ่ม scrollbar ถ้าหมากเยอะเกิน */
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     overflow-y: auto; 
-    padding-right: 5px; /* กัน scrollbar ชนขอบ */
+    padding-right: 5px;
 }
 
-/* (ปรับปรุง) สไตล์สำหรับ .piece ที่มีรูปภาพ */
 .piece {
-    display: flex; /* เปลี่ยนเป็น Flexbox */
-    align-items: center; /* จัดให้อยู่กึ่งกลางแนวตั้ง */
-    justify-content: flex-start; /* จัดชิดซ้าย */
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
     padding: 10px;
     background: #fdfdfd;
     border: 1px solid #e0e0e0;
     cursor: move;
     border-radius: 6px;
-    font-weight: 600; /* เพิ่มน้ำหนักตัวอักษรเล็กน้อย */
+    font-weight: 600;
     color: #444;
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -197,37 +175,31 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* (ปรับปรุง) สไตล์สำหรับรูปภาพใน .piece */
 .piece img {
-    width: 35px; /* ปรับขนาดรูปภาพ */
-    height: 35px; /* ปรับขนาดรูปภาพ */
-    margin-right: 10px; /* เพิ่มระยะห่างจากข้อความ */
-    /* ไม่มีการใช้ filter: invert() เพื่อให้แสดงสีรูปภาพตามจริง */
+    width: 35px;
+    height: 35px; 
+    margin-right: 10px;
 }
 
-
-/* --- ปรับส่วนปุ่มควบคุม (ย้ายออกมานอก Side Panel) --- */
-
 .button-container {
-    margin-top: 20px; /* เพิ่ม margin เพื่อเว้นระยะห่างจาก .game-area */
+    margin-top: 20px;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
 }
 
 #game-button, #reset-black, #reset-white {
-    padding: 12px 20px; /* เพิ่ม padding ให้สมส่วน */
+    padding: 12px 20px;
     border: none;
-    border-radius: 6px; /* มนมุมให้เข้ากับส่วนอื่น */
+    border-radius: 6px;
     cursor: pointer;
     font-size: 15px;
     font-weight: bold;
-    color: white;
-    /* เพิ่ม transition */
+    color: rgb(255, 255, 255);
+    background-color: rgb(3, 211, 118);
     transition: filter 0.2s ease, transform 0.2s ease;
 }
 
-/* เพิ่มเอฟเฟกต์ hover ให้ปุ่ม */
 #game-button:not(:disabled):hover,
 #reset-black:not(:disabled):hover,
 #reset-white:not(:disabled):hover {
@@ -235,24 +207,17 @@ body {
     transform: translateY(-1px);
 }
 
-/* สีปุ่ม */
 #game-button.start { background-color: #4CAF50; }
 #game-button.stop { background-color: #f44336; }
 #reset-black { background-color: #333; }
-#reset-white { background-color: #555; } /* เปลี่ยนจากสีแดงเป็นเทาเข้ม */
+#reset-white { background-color: #555; }
 
 #game-button:disabled, #reset-black:disabled, #reset-white:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
-    /* ปิดเอฟเฟกต์ตอน disabled */
     filter: none;
     transform: none;
 }
-
-/* ===============================================
-    CSS ที่เหลือ (สไตล์บนกระดาน)
-===============================================
-*/
 
 .piece-on-board {
     width: 100%;
