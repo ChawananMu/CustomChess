@@ -175,7 +175,7 @@ class ChessGame {
         this.points[color] = 0;
         this.updateUI();
     }
-    
+
     resetBoard() {
         this.isGameStarted = false;
         this.points = { white: 0, black: 0 };
@@ -184,18 +184,18 @@ class ChessGame {
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
                 this.board[r][c] = null;
-                this.drawPiece(r, c); 
+                this.drawPiece(r, c);
             }
         }
 
         if (window.pieceLogic) {
             window.pieceLogic.clearMoveLog();
-            window.pieceLogic.turn = ''; 
+            window.pieceLogic.turn = '';
             window.pieceLogic.showTurn();
             window.pieceLogic.clearSelection();
         }
-        
-        this.updateUI(); 
+
+        this.updateUI();
     }
 
     toggleGame() {
@@ -212,6 +212,7 @@ class ChessGame {
             }
 
             let firstMove = pl.turn || (Math.random() < 0.5 ? 'white' : 'black');
+
             const originalTurn = pl.turn;
             pl.turn = firstMove;
 
@@ -222,15 +223,16 @@ class ChessGame {
 
             if (inCheck && !hasMoves) {
                 alert(`Invalid setup: ${firstMove.toUpperCase()} starts in CHECKMATE. Please change the board.`);
-                return; 
+                return;
             }
+
             if (!inCheck && !hasMoves) {
                 alert(`Invalid setup: ${firstMove.toUpperCase()} starts in STALEMATE. Please change the board.`);
-                return; 
+                return;
             }
 
             this.isGameStarted = true;
-            pl.turn = firstMove; 
+            pl.turn = firstMove;
             alert(firstMove.charAt(0).toUpperCase() + firstMove.slice(1) + ' moves first.');
             pl.showTurn();
 
@@ -238,7 +240,7 @@ class ChessGame {
             this.resetBoard();
         }
 
-        this.updateUI(); 
+        this.updateUI();
     }
 
     saveGame() {
